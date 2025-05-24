@@ -12,7 +12,7 @@ DEB_LEVEL = 1
 
 
 def readTemplates(path='.', filename='configTemplates.xlsx', sheet_name='Sheet1'):
-    """ Reads an excel file and stores it into strings to be used as jj2 templates
+    """ Reads an Excel file and stores it into strings to be used as jj2 templates
         Detects {{}} patterns and appends it to variables
     """
 
@@ -29,7 +29,7 @@ def readTemplates(path='.', filename='configTemplates.xlsx', sheet_name='Sheet1'
 
 
 def readVariables(path = '.', filename = 'configVariables.xlsx', sheet_name = 'Sheet1'):
-    """ Reads an excel file and stores it into a dictionary to be used as jj2 data
+    """ Reads an Excel file and stores it into a dictionary to be used as jj2 data
         Detect values starting with { and reads it as json data (not secure)
     """
 
