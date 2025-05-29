@@ -28,7 +28,7 @@ def readTemplates(path='.', filename='configTemplates.xlsx', sheet_name='Sheet1'
     return template, variables
 
 
-def readVariables(path = '.', filename = 'configVariables.xlsx', sheet_name = 'Sheet1'):
+def readVariables(path='.', filename='configVariables.xlsx', sheet_name='Sheet1'):
     """ Reads an Excel file and stores it into a dictionary to be used as jj2 data
         Detect values starting with { and reads it as json data (not secure)
     """
@@ -63,8 +63,11 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--parameters', help='Config variables (parameters) file. Def. configVariables.xlsx',
                         default='configVariables.xlsx')
     parser.add_argument('-o', '--output', help='Filenames prefix. Def. OUT_', default='OUT_')
-    parser.add_argument('-g', '--section-groups', help='Select the groups to show (Sheets name) Not using "-" nor '
-                                                       'spaces or special chars, please', default='Sheet1')
+    parser.add_argument('-u', '--unique', help='Use only the 1st sheet from config file for all the variable sheet',
+                        action='store_true')
+    parser.add_argument('-g', '--section-groups', help='Select the groups to show (Sheets name from variables file) '
+                                                       'Not using "-" nor spaces or special chars, please',
+                        default='Sheet1')
     parser.add_argument('-s', '--show-vars', help='Show detected variables (Optional)', action='store_true')
     parser.add_argument('-t', '--show-template', help='Show templates (Optional)', action='store_true')
     parser.add_argument('-i', '--interactive', help='Wait for after showing one rendered template (Optional)',
@@ -74,32 +77,42 @@ if __name__ == '__main__':
     args = parser.parse_args()
     DEB_LEVEL = args.debug if args.debug else 0
 
-    templateFolder, systemSeparator = args.folder,  '/'
+    templateFolder, systemSeparator = args.folder, '/'
     configFile, variablesFile = args.config, args.parameters
 
     if templateFolder != '.' and not os.path.isdir(templateFolder):
         print(f"INFO: Creating {templateFolder}")
         os.mkdir(templateFolder)
 
-    wb = openpyxl.load_workbook(templateFolder + systemSeparator + configFile)
+    wb = openpyxl.load_workbook(templateFolder + systemSeparator + variablesFile)
     sectionGroups = wb.sheetnames
     print(f"INFO: detected {len(sectionGroups)} sectionGroups")
     print(f"INFO: {sectionGroups}")
     env = jinja2.Environment()
+    uniqueRead = True
+    if args.unique:
+        wb = openpyxl.load_workbook(templateFolder + systemSeparator + configFile)
+        uniqueTemplate = wb.sheetnames[0]
+        uniqueRead = False
+    temp, var = "", {}
     for g in sectionGroups:
         if args.section_groups != "Sheet1":
             if g != args.section_groups:
                 continue
         print(f"INFO: >>> {g}")
-        temp, var = readTemplates(path=templateFolder, filename=configFile, sheet_name=g)
+        if args.unique:
+            temp, var = readTemplates(path=templateFolder, filename=configFile, sheet_name=uniqueTemplate)
+            uniqueRead = True
+        else:
+            temp, var = readTemplates(path=templateFolder, filename=configFile, sheet_name=g)
         data = readVariables(path=templateFolder, filename=variablesFile, sheet_name=g)
         if args.show_vars:
             print(f"INFO: Detected variables = {data}")
         template = env.from_string(str(temp))
         if args.show_template:
-            print(f"INFO: >>> TEMPLATE")
-            print(template)
-            print(f"INFO: <<< TEMPLATE")
+            print(f"INFO: >>> {g} TEMPLATE")
+            print(str(temp))
+            print(f"INFO: <<< {g} TEMPLATE")
         config = template.render(data)
         outputFilename = templateFolder + systemSeparator + args.output + date_prefix + g + '.txt'
         if os.path.isfile(outputFilename):
@@ -114,4 +127,3 @@ if __name__ == '__main__':
 
     last = datetime.now() - start
     print(f"INFO: Execution took {last.microseconds} microseconds")
-
