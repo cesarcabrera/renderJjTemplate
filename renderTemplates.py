@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+
+# Copyright (C) 2025 César Cabrera / cesarcabrera.info@gmail.com
+# This is free software: you can redistribute it and/or modify it
+# under the terms of the 3-clause BSD License.
+# renderjj2Templates is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY of any kind whatsoever.
+
 import jinja2
 import pandas as pd
 import openpyxl
