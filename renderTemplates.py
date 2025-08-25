@@ -60,7 +60,7 @@ def readVariables(path='.', filename='configVariables.xlsx', sheet_name='Sheet1'
 
 if __name__ == '__main__':
     start = datetime.now()
-    date_prefix = start.strftime('%Y_%m_%d_%M')
+    date_prefix = start.strftime('%Y_%m_%d_%H_%M')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--version', help='Version', action='version',
@@ -71,16 +71,20 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--parameters', help='Config variables (parameters) file. Def. configVariables.xlsx',
                         default='configVariables.xlsx')
     parser.add_argument('-o', '--output', help='Filenames prefix. Def. OUT_', default='OUT_')
-    parser.add_argument('-u', '--unique', help='Use only the 1st sheet from config file for all the variable sheet',
+    parser.add_argument('-u', '--unique', help='Use only the 1st sheet from config file for all the variable sheets '
+                                               '(one template for all sites)',
                         action='store_true')
-    parser.add_argument('-g', '--section-groups', help='Select the groups to show (Sheets name from variables file) '
-                                                       'Not using "-" nor spaces or special chars, please',
+    parser.add_argument('-g', '--section-groups', help='Select the groups to show (Sheet name from variables file) '
+                                                       'Do not use "-" nor spaces or special chars, please',
                         default='Sheet1')
-    parser.add_argument('-s', '--show-vars', help='Show detected variables (Optional)', action='store_true')
-    parser.add_argument('-t', '--show-template', help='Show templates (Optional)', action='store_true')
-    parser.add_argument('-i', '--interactive', help='Wait for after showing one rendered template (Optional)',
+    parser.add_argument('-s', '--show-vars', help='(Optional)Show detected variables', action='store_true')
+    parser.add_argument('-t', '--show-template', help='(Optional)Show templates', action='store_true')
+    parser.add_argument('-i', '--interactive', help='(Optional)Wait for after showing one rendered template',
+                        action='store_true')
+    parser.add_argument('-k', '--cat', help='(Optional)Write all on one single file',
                         action='store_true')
     parser.add_argument('-d', '--debug', help='Debug Level (0=Nothing, > 1 more detail)', type=int)
+    parser.add_argument('-x', help='Consolidate ouput on 1 file', action='store_true')
 
     args = parser.parse_args()
     DEB_LEVEL = args.debug if args.debug else 0
@@ -97,12 +101,13 @@ if __name__ == '__main__':
     print(f"INFO: detected {len(sectionGroups)} sectionGroups")
     print(f"INFO: {sectionGroups}")
     env = jinja2.Environment()
-    uniqueRead = True
+    uniqueRead, uniqueTemplate = True, ''
     if args.unique:
         wb = openpyxl.load_workbook(templateFolder + systemSeparator + configFile)
         uniqueTemplate = wb.sheetnames[0]
         uniqueRead = False
     temp, var = "", {}
+    consolidated = ""
     for g in sectionGroups:
         if args.section_groups != "Sheet1":
             if g != args.section_groups:
@@ -128,10 +133,15 @@ if __name__ == '__main__':
         with open(outputFilename, 'w+') as f:
             print(f"INFO:  Writing to {outputFilename} {len(config)} lines!")
             f.write(config)
+            consolidated += "\n" + config
         print(config) if DEB_LEVEL >= 2 else ""
         print(f"INFO: <<< {g}")
         if args.interactive:
             input("Press ENTER to continue...")
-
+    if args.x:
+        outputFilename = templateFolder + systemSeparator + args.output + date_prefix + ".txt"
+        print(f"INFO: Consolidating output in {outputFilename}")
+        with open(outputFilename, 'w') as f:
+            f.write(consolidated)
     last = datetime.now() - start
     print(f"INFO: Execution took {last.microseconds} microseconds")
