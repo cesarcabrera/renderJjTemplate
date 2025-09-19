@@ -2,8 +2,10 @@ Mexico, 2025
 César A. Cabrera E.
 https://cesarcabrera.info/
 
-renderTemplate.py: Takes an Excel File with jinja2 templates and a second file with variable contents to render Jinja2 
-templates. The files should have the same sheets names to align values to the templates.
+renderTemplate.py: Takes an Excel File with jinja2 templates (one line per cell) and a second file with variable contents to render Jinja2 
+templates, when the data is complex, variable content can be json objects. There are two scenarios: 
+a) (Default) Using two excel files with same sheet names, one pair of template-variable identified by the sheet name, 
+b) (-u option) Two excel files, one with jinja templates (only 1st sheet used) and the second with a set of different variable contents to generate as many files as sheet names on the variables file.
 
 renderTemplates.py -h<br>
 usage: renderTemplates.py [-h] [-v] [-f FOLDER] [-c CONFIG] [-p PARAMETERS] [-o OUTPUT] [-u] [-g SECTION_GROUPS] [-s] [-t] [-i] [-d DEBUG]<br>
